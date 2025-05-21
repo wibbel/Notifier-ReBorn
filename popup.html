@@ -1,74 +1,201 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Vine Notifier</title>
+  <title>Vine Notifier ReBorn v2.0</title>
   <style>
     body {font-family: Arial,sans-serif; margin:0; padding:0; width:340px; background:#f0f2f5; color:#333;}
     header {background:#146eb4; color:#fff; padding:12px; text-align:center; position:relative;}
-    .flags {position:absolute; top:8px; right:12px; display:flex; gap:8px;}
-    .flag {width:24px; height:16px; cursor:pointer; border:2px solid transparent; border-radius:2px;}
-    .flag.selected {border-color:#ff9900;}
     form {padding:16px;}
     label {margin:12px 0 4px; font-weight:600; display:block;}
     input, select, textarea {width:100%; padding:8px; margin-top:4px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:0.95em;}
     .row, .toggle {display:flex; align-items:center; margin-top:12px;}
     .toggle input {margin-right:8px; transform:scale(1.2);}
+    .toggle.indented {margin-left: 24px;}
     .row label {flex:0 0 80px; margin:0; font-weight:normal;}
     button {margin-top:16px; width:100%; padding:10px; background:#ff9900; border:none; border-radius:4px; color:#fff; font-size:1em; cursor:pointer;}
     button:hover {background:#e68a00;}
     .note {font-size:0.85em; color:#555; margin-top:8px;}
+    .webhookSection {margin-top: 16px; padding-top: 8px; border-top: 1px solid #ddd;}
+    .refreshSection {margin-top: 16px; padding-top: 8px; border-top: 1px solid #ddd;}
+    .webhookTitle, .refreshTitle {font-weight: 600; margin-bottom: 8px;}
+    hr {border: 0; height: 1px; background: #ddd; margin: 16px 0;}
+    /* Fix for URL field labels */
+    .url-field {margin-top: 8px;}
+    .url-field label {display: block; margin-bottom: 4px; font-weight: 400; font-size: 0.95em;}
+    .url-field input {width: 100%;}
+    /* Info box */
+    .info-box {background:#e8f4ff; border-left:4px solid #146eb4; padding:10px; margin-top:16px; font-size:0.9em;}
+    /* Queue refresh time settings */
+    .queue-settings {background:#f9f9f9; padding:12px; border-radius:4px; margin-top:8px;}
+    .queue-title {font-weight:600; margin-bottom:8px; color:#146eb4;}
+    .interval-row {display:flex; margin-bottom:8px;}
+    .interval-row input {width:calc(50% - 4px); margin-right:8px;}
+    .interval-row input:last-child {margin-right:0;}
+    .interval-label {font-size:0.85em; color:#555; display:flex; justify-content:space-between;}
+    .interval-label span {width:calc(50% - 4px); display:inline-block;}
+    /* Filter section styling */
+    .filter-container {margin-top: 16px; padding-top: 8px; border-top: 1px solid #ddd;}
+    .filter-row {display: flex; flex-direction: column;}
+    .filter-toggle {display: flex; align-items: center; margin-top: 8px;}
+    .filter-toggle input {width: auto; margin-right: 8px;}
+    .filter-toggle label {margin: 0; font-weight: 400;}
+    .filter-note {font-size: 0.85em; color: #555; margin-top: 4px; font-style: italic;}
   </style>
 </head>
 <body>
-  <header id="hdrTitle" data-i18n="settingsTitle">Einstellungen</header>
-  <div class="flags">
-    <img src="icons/de.svg" id="lang-de" class="flag" alt="Deutsch">
-    <img src="icons/en.svg" id="lang-en" class="flag" alt="English">
-  </div>
+  <header>Vine Notifier Settings</header>
+  <h2 style='text-align:center; font-size:16px;'>ReBorn v2.0</h2>
   <form id="settingsForm">
     <div class="toggle">
       <input type="checkbox" id="enabledSwitch" name="enabled">
-      <label for="enabledSwitch" data-i18n="enabledLabel">Aktiviert</label>
+      <label for="enabledSwitch">Enabled</label>
     </div>
 
-    <label for="webhookUrl" data-i18n="webhookUrlLabel">Webhook-URL ({ArticleName}):</label>
-    <input type="text" id="webhookUrl" name="webhookUrl" placeholder="https://.../{ArticleName}" required>
-
-    <label for="httpMethod" data-i18n="httpMethodLabel">HTTP-Methode:</label>
-    <select id="httpMethod" name="httpMethod">
-      <option value="GET">GET</option>
-      <option value="POST">POST</option>
-    </select>
-
-    <div id="bodyContainer" style="display:none;">
-      <label for="postBody" data-i18n="postBodyLabel">POST-Body:</label>
-      <textarea id="postBody" name="postBody" rows="4" placeholder='{ "product": "{ArticleName}" }'></textarea>
+    <!-- Webhook Sections -->
+    <div class="webhookSection">
+      <div class="toggle">
+        <input type="checkbox" id="ntfyEnabled" name="ntfyEnabled">
+        <label for="ntfyEnabled">NTFY Notifications</label>
+      </div>
+      <div class="url-field">
+        <label for="ntfyUrl">NTFY URL:</label>
+        <input type="text" id="ntfyUrl" name="ntfyUrl" placeholder="https://ntfy.sh/your-topic">
+      </div>
     </div>
 
-    <label for="minInterval" data-i18n="minIntervalLabel">Min. Refresh (Sek.):</label>
-    <input type="number" id="minInterval" name="minInterval" min="1" required>
-
-    <label for="maxInterval" data-i18n="maxIntervalLabel">Max. Refresh (Sek.):</label>
-    <input type="number" id="maxInterval" name="maxInterval" min="1" required>
-
-    <label data-i18n="timeWindowLabel">Zeitfenster:</label>
-    <div class="row">
-      <label for="fromTime" data-i18n="fromLabel">Von</label>
-      <input type="time" id="fromTime" name="fromTime" required>
-    </div>
-    <div class="row">
-      <label for="toTime" data-i18n="toLabel">Bis</label>
-      <input type="time" id="toTime" name="toTime" required>
+    <div class="webhookSection">
+      <div class="toggle">
+        <input type="checkbox" id="discordEnabled" name="discordEnabled">
+        <label for="discordEnabled">Discord Notifications</label>
+      </div>
+      <div class="url-field">
+        <label for="discordUrl">Discord Webhook URL:</label>
+        <input type="text" id="discordUrl" name="discordUrl" placeholder="https://discord.com/api/webhooks/...">
+      </div>
     </div>
 
-    <label for="filter" data-i18n="filterLabel">Filter (opt.):</label>
-    <input type="text" id="filter" name="filter" placeholder="z.B. Kamera">
+    <hr>
 
-    <button type="submit" data-i18n="saveButton">Speichern</button>
+    <!-- Default Refresh Settings -->
+    <div class="refreshSection">
+      <div class="refreshTitle">Default Refresh Intervals</div>
+      <div class="row">
+        <label for="minInterval">Min (Sec):</label>
+        <input type="number" id="minInterval" name="minInterval" min="1" required>
+      </div>
+      <div class="row">
+        <label for="maxInterval">Max (Sec):</label>
+        <input type="number" id="maxInterval" name="maxInterval" min="1" required>
+      </div>
+      <div class="note">These are used as fallback if queue-specific times are not set.</div>
+    </div>
+
+    <!-- Queue-Specific Refresh Settings -->
+    <div class="refreshSection">
+      <div class="refreshTitle">Queue-Specific Refresh Intervals</div>
+      
+      <!-- RFY Queue -->
+      <div class="queue-settings">
+        <div class="queue-title">RFY (Recommended For You)</div>
+        <div class="interval-row">
+          <input type="number" id="minIntervalRFY" name="minIntervalRFY" min="1" placeholder="Min seconds">
+          <input type="number" id="maxIntervalRFY" name="maxIntervalRFY" min="1" placeholder="Max seconds">
+        </div>
+        <div class="interval-label">
+          <span>Min Seconds</span>
+          <span>Max Seconds</span>
+        </div>
+      </div>
+      
+      <!-- AFA Queue -->
+      <div class="queue-settings">
+        <div class="queue-title">AFA (Available For All)</div>
+        <div class="interval-row">
+          <input type="number" id="minIntervalAFA" name="minIntervalAFA" min="1" placeholder="Min seconds">
+          <input type="number" id="maxIntervalAFA" name="maxIntervalAFA" min="1" placeholder="Max seconds">
+        </div>
+        <div class="interval-label">
+          <span>Min Seconds</span>
+          <span>Max Seconds</span>
+        </div>
+      </div>
+      
+      <!-- AI Queue -->
+      <div class="queue-settings">
+        <div class="queue-title">AI (Additional Items)</div>
+        <div class="interval-row">
+          <input type="number" id="minIntervalAI" name="minIntervalAI" min="1" placeholder="Min seconds">
+          <input type="number" id="maxIntervalAI" name="maxIntervalAI" min="1" placeholder="Max seconds">
+        </div>
+        <div class="interval-label">
+          <span>Min Seconds</span>
+          <span>Max Seconds</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Section with Regex Support -->
+	<div class="filter-container">
+	  <div class="refreshTitle">Filter Settings</div>
+	  
+	  <!-- Global Filter (optional, can be removed if not needed) -->
+	  <div class="queue-settings">
+		<div class="queue-title">Global Filter (applies if queue-specific filter is empty)</div>
+		<input type="text" id="filter" name="filter" placeholder="e.g. Camera|Headphone">
+		<div class="filter-toggle">
+		  <input type="checkbox" id="isRegexFilter" name="isRegexFilter">
+		  <label for="isRegexFilter">Use Regex Pattern</label>
+		</div>
+	  </div>
+	
+	  <!-- RFY Queue Filter -->
+	  <div class="queue-settings">
+		<div class="queue-title">RFY Filter (Recommended For You)</div>
+		<input type="text" id="filterRFY" name="filterRFY" placeholder="e.g. Electronics|Kitchen">
+		<div class="filter-toggle">
+		  <input type="checkbox" id="isRegexFilterRFY" name="isRegexFilterRFY">
+		  <label for="isRegexFilterRFY">Use Regex Pattern</label>
+		</div>
+	  </div>
+	  
+	  <!-- AFA Queue Filter -->
+	  <div class="queue-settings">
+		<div class="queue-title">AFA Filter (Available For All)</div>
+		<input type="text" id="filterAFA" name="filterAFA" placeholder="e.g. Books|Toys">
+		<div class="filter-toggle">
+		  <input type="checkbox" id="isRegexFilterAFA" name="isRegexFilterAFA">
+		  <label for="isRegexFilterAFA">Use Regex Pattern</label>
+		</div>
+	  </div>
+	  
+	  <!-- AI Queue Filter -->
+	  <div class="queue-settings">
+		<div class="queue-title">AI Filter (Additional Items)</div>
+		<input type="text" id="filterAI" name="filterAI" placeholder="e.g. Clothing|Beauty">
+		<div class="filter-toggle">
+		  <input type="checkbox" id="isRegexFilterAI" name="isRegexFilterAI">
+		  <label for="isRegexFilterAI">Use Regex Pattern</label>
+		</div>
+	  </div>
+	  
+	  <div class="filter-note">
+		Examples: "Camera|Headphone" will match products containing "Camera" OR "Headphone"
+	  </div>
+	  <div class="filter-note">
+		All filters are case-insensitive. Regular expression syntax is supported when enabled.
+	  </div>
+	  <div class="filter-note">
+		Queue-specific filters take precedence over the global filter.
+	  </div>
+	</div>
+
+    <button type="submit">Save</button>
     <p id="statusMsg" class="note"></p>
   </form>
 
+  <!-- Import the constants first -->
+  <script src="constants.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
